@@ -4,6 +4,10 @@ MidiBus myBus; // The MidiBus
 
 // Global Variable
 PFont sans;
+PImage title;
+PImage go;
+PImage mamonaku;
+PImage result;
 
 // init counter
 int counter1 = 0;
@@ -46,14 +50,37 @@ int velocity = 127;
 // init winner flag
 int winner = 0;
 
-void setup() {
+// init scene
+int scene = 0;
 
-  size(1000, 600);
+// init resul tcount
+int counter1Result = 0;
+int counter2Result = 0;
+int counter3Result = 0;
+int counter4Result = 0;
+
+// init result ratio
+float ratio1Result = 0.25;
+float ratio2Result = 0.25;
+float ratio3Result = 0.25;
+float ratio4Result = 0.25;
+
+//init inplayflag
+int inplay =0;
+
+void setup() {
+  
+  fullScreen();
   
   sans = loadFont("ProcessingSansPro-Regular-48.vlw");
   
+  title = loadImage("title.png");
+  go = loadImage("go.png");
+  mamonaku = loadImage("mamonaku.png");
+  result = loadImage("result.png");
+  
   MidiBus.list(); // List all available Midi devices on STDOUT. This will show each device's index and name.
-  myBus = new MidiBus(this, "katsuki-windows", "katsuki-windows"); // Create a new MidiBus with no input device and the default Java Sound Synthesizer as the output device.
+  myBus = new MidiBus(this, "loopMIDI Port", "loopMIDI Port"); // Create a new MidiBus with no input device and the default Java Sound Synthesizer as the output device.
   
   frameRate(60);
 
@@ -69,6 +96,8 @@ void draw() {
 //   myBus.sendControllerChange(4, 1, 100); // Send a controllerChange
 //   delay(2000);
 
+  background(0,0,0);
+
   // timecounter countup
   timecounter++;
 
@@ -81,7 +110,6 @@ void draw() {
     ratio4 = counter4 / sum;
   }
 
-  
   // calc move velocity
   if ( timecounter == 0 ){
     tmpvelo1 = counter1;     
@@ -102,19 +130,37 @@ void draw() {
     tmpvelo4 = counter4;
   }
   
-  // change backgrundcolor
-  switch(winner){
-     case 1:
-       background(0,0,0);
-       break;
-     case 2:
-       background(0,0,0);
-       break;
-     default:
-       background(0,0,0);
-       break;
+   switch (scene){
+      case 0:
+        showWait();
+        break;
+      case 1:
+        showPlay();
+        inplay = 1;
+        break;
+      case 2:
+        if (inplay==1){
+          counter1Result = counter1;
+          counter2Result = counter2;
+          counter3Result = counter3;
+          counter4Result = counter4;
+          sum = counter1Result + counter2Result + counter3Result + counter4Result;
+          ratio1Result = counter1Result / sum;
+          ratio2Result = counter2Result / sum;
+          ratio3Result = counter3Result / sum;
+          ratio4Result = counter4Result / sum;
+          inplay = 0;  
+          }
+        showResultRatio(); //<>//
+        break;
+      case 3:
+        showResult();
+        break;
+      default:
+        showWait();
+        break;
   }
-
+  
   //// change kagura scene
   //switch(counterRed){
   //   case 100:
@@ -132,60 +178,6 @@ void draw() {
   //   default:
   //     break;
   //}
-  
-  // display
-  textFont(sans,20);
-  fill(255,255,255);
-  text("MIRAINO UNDOUKAI FUKUOKA", 50, 50);
-  text("timecounter="+timecounter, 50, 100);
-  
-  text("1", 50, 200);
-  text("counter="+counter1, 50, 250);
-  text("ratio="+ratio1, 50, 300);
-  text(velo1+"moves / sec", 50, 350); //<>//
-  
-  text("2", 250, 200);
-  text("counter="+counter2, 250, 250);
-  text("ratio="+ratio2, 250, 300);
-  text(velo2+"moves / sec", 250, 350);
-  
-  text("3", 450, 200);
-  text("counter="+counter3, 450, 250);
-  text("ratio="+ratio3, 450, 300);
-  text(velo3+"moves / sec", 450, 350);
-  
-  text("4", 650, 200);
-  text("counter="+counter4, 650, 250);
-  text("ratio="+ratio4, 650, 300);
-  text(velo3+"moves / sec", 650, 350);
-
-  if( counter1 > 0 || counter2 > 0 || counter3 > 0 || counter4 > 0){
-    fill(0,0,255);
-    noStroke();
-    rect(0, 500, ratio1*1000, 100);
-    fill(0,255,0);
-    noStroke();
-    rect(ratio1*1000, 500, ratio2*1000, 100);
-    fill(167,87,168);
-    noStroke();
-    rect((ratio1+ratio2)*1000, 500, ratio3*1000, 100);
-    fill(255,0,0);
-    noStroke();
-    rect((ratio1+ratio2+ratio3)*1000, 500, ratio4*1000, 100);
-  } else {
-    fill(0,0,255);
-    noStroke();
-    rect(0, 500, 500, 100);
-    fill(0,255,0);
-    noStroke();
-    rect(250, 500, 500, 100);
-    fill(167,87,168);
-    noStroke();
-    rect(500, 500, 500, 100);
-    fill(255,0,0);
-    noStroke();
-    rect(750, 500, 500, 100);
-  }
   
   // stdout     
   //println("--------");
@@ -210,7 +202,7 @@ void noteOn(int channel, int pitch, int velocity) {
       break;
     case 1:
       counter2++;
-      break; //<>//
+      break;
     case 2:
       counter3++;
       break;
@@ -219,18 +211,6 @@ void noteOn(int channel, int pitch, int velocity) {
       break;
     default:
   }
-  
-  //if (counterRed > counterBlue){
-  //  winner = 1;
-  //} else if (counterBlue > counterRed) {
-  //  winner = 2;
-  //} else {
-  //  winner = 0;
-  //}
-  
-  //println("CounterRed:"+counterRed);  
-  //println("CounterBlue:"+counterBlue);
-  //println("winner:"+winner);
     
 }
 
@@ -257,4 +237,108 @@ void controllerChange(int channel, int number, int value) {
 void delay(int time) {
   int current = millis();
   while (millis () < current+time) Thread.yield();
+}
+
+void showPlay() {
+    
+    fill(83,109,254);
+    noStroke();
+    rect(0, 0, ratio1*displayWidth, displayHeight);
+    fill(0,150,136);
+    noStroke();
+    rect(ratio1*displayWidth, 0, ratio2*displayWidth, displayHeight);
+    fill(123,31,162);
+    noStroke();
+    rect((ratio1+ratio2)*displayWidth, 0, ratio3*displayWidth, displayHeight);
+    fill(211,47,47);
+    noStroke();
+    rect((ratio1+ratio2+ratio3)*displayWidth, 0, ratio4*displayWidth, displayHeight);
+    
+    //imageMode(CENTER); //
+    //image(go, displayWidth / 2, displayHeight / 2);
+
+}
+
+void showResultRatio(){
+   //<>//
+    fill(83,109,254);
+    noStroke();
+    rect(0, 0, ratio1Result*displayWidth, displayHeight);
+    fill(0,150,136);
+    noStroke();
+    rect(ratio1Result*displayWidth, 0, ratio2Result*displayWidth, displayHeight);
+    fill(123,31,162);
+    noStroke();
+    rect((ratio1Result+ratio2Result)*displayWidth, 0, ratio3Result*displayWidth, displayHeight);
+    fill(211,47,47);
+    noStroke();
+    rect((ratio1Result+ratio2Result+ratio3Result)*displayWidth, 0, ratio4Result*displayWidth, displayHeight);
+    
+    imageMode(CENTER); //
+    image(mamonaku, displayWidth / 2, displayHeight / 2);
+    
+}
+
+void showResult() {
+  
+    // Background
+    fill(83,109,254);
+    noStroke();
+    rect(0, 0, displayWidth/4 , displayHeight);
+    fill(0,150,136);
+    noStroke();
+    rect(displayWidth/4, 0, displayWidth/4 , displayHeight);
+    fill(123,31,162);
+    noStroke();
+    rect(displayWidth/2, 0, displayWidth/4 , displayHeight);
+    fill(211,47,47);
+    noStroke();
+    rect(displayWidth*3/4, 0, displayWidth/4 , displayHeight);
+  
+    // Result 
+    fill(255,255,255);  
+    textFont(sans,150);
+    textAlign(CENTER);
+    text(counter1Result, displayWidth/8, displayHeight*3.3/4);
+    text(counter2Result, displayWidth*3/8, displayHeight*3.3/4);
+    text(counter3Result, displayWidth*5/8, displayHeight*3.3/4);
+    text(counter4Result, displayWidth*7/8, displayHeight*3.3/4); //<>//
+    
+    imageMode(CENTER); //
+    image(result, displayWidth / 2, displayHeight / 2);
+  
+}
+
+void showWait() {
+  
+    // Background
+    fill(83,109,254);
+    noStroke();
+    rect(0, 0, displayWidth/4 , displayHeight);
+    fill(0,150,136);
+    noStroke();
+    rect(displayWidth/4, 0, displayWidth/4 , displayHeight);
+    fill(123,31,162);
+    noStroke();
+    rect(displayWidth/2, 0, displayWidth/4 , displayHeight);
+    fill(211,47,47);
+    noStroke();
+    rect(displayWidth*3/4, 0, displayWidth/4 , displayHeight);
+    
+    imageMode(CENTER); //
+    image(title, displayWidth / 2, displayHeight / 2);
+    
+}
+
+void keyPressed() {
+  println("Press:");
+  
+  switch( key ){
+    case ENTER:
+    case RETURN:
+      scene++;
+    default:
+      break;
+  }
+
 }
